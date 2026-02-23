@@ -1,22 +1,43 @@
-export default async function handler(req, res) {
-  const REAL_MPD =
-    "https://origin-cdn.com/path/to/manifest.mpd";
+export const runtime = "nodejs";
 
+const REAL_MPD =
+  "https://your-real-domain.com/path/manifest.mpd";
+
+export async function GET() {
   try {
     const response = await fetch(REAL_MPD, {
       headers: {
-        "User-Agent": "Mozilla/5.0"
-      }
+        "User-Agent": "Mozilla/5.0",
+        "Referer": REAL_MPD,
+      },
+      cache: "no-store",
     });
 
-    const mpdText = await response.text();
+    if (!response.ok) {
+      return new Response("Upstream error", { status: 500 });
+    }
 
-    res.setHeader("Content-Type", "application/dash+xml");
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    let mpdText = await response.text();
 
-    res.status(200).send(mpdText);
+    // Fix BaseURL if needed
+    const base = REAL_MPD.substring(
+      0,
+      REAL_MPD.lastIndexOf("/") + 1
+    );
 
+    mpdText = mpdText.replace(
+      /<BaseURL>(.*?)<\/BaseURL>/g,
+      `<BaseURL>${base}</BaseURL>`
+    );
+
+    return new Response(mpdText, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/dash+xml",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
   } catch (err) {
-    res.status(500).send("Manifest Error");
+    return new Response("Manifest Error", { status: 500 });
   }
 }
