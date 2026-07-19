@@ -15,7 +15,8 @@ export default function RootLayout({ children }) {
             <head>
             </head>
             <body>
-                <p>#page under the development</p>
+                <p>dev hasn't time to develop portfolio 🥲</p>
+                <a href="https://lk.linkedin.com/in/saveennidukshan">find in linkedin</a>
             </body>
         </html>
     );
